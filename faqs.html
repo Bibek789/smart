@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQs - FloatChat</title>
+    <link rel="stylesheet" href="style.css"> <!-- Main stylesheet for layout -->
+    <link rel="stylesheet" href="chat.css"> <!-- For background styles -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+        :root{
+            --base-100: #181717;
+            --base-200: #292725;
+            --base-300: #f5f5f5;
+        }
+
+        /* Overriding body styles from style.css for this page */
+        body {
+            font-family: "Hosy Grotesk";
+            overflow-y: auto; /* Allow scrolling for FAQ content */
+            color: var(--base-300);
+        }
+        
+        /* FAQ Specific Styles */
+        .faq-section {
+            padding: 4rem 2rem;
+        }
+        
+        .faq-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        
+        .faq-header h1 {
+            font-size: 4rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+        
+        .faq-header p {
+            font-size: 1.2rem;
+            opacity: 0.7;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .faq-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .faq-item {
+            background-color: var(--base-200);
+            border-radius: 1rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .faq-question {
+            padding: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            font-size: 1.2rem;
+        }
+        
+        .faq-question::after {
+            content: '+';
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .faq-question.active::after {
+            content: '-';
+        }
+        
+        .faq-answer {
+            padding: 0 1.5rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+            line-height: 1.6;
+            opacity: 0.85;
+        }
+        
+        .faq-answer.open {
+            padding: 0 1.5rem 1.5rem;
+            max-height: 300px;
+        }
+        
+        .search-container {
+            margin-bottom: 3rem;
+            position: relative;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background-color: var(--base-200);
+            border: none;
+            border-radius: 2rem;
+            color: var(--base-300);
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        
+        .search-input:focus {
+            outline: 1px solid var(--base-300);
+        }
+        
+        .faq-categories {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .category-btn {
+            padding: 0.5rem 1.5rem;
+            background-color: var(--base-200);
+            border: none;
+            border-radius: 2rem;
+            color: var(--base-300);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        
+        .category-btn.active, .category-btn:hover {
+            background-color: var(--base-300);
+            color: var(--base-100);
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 2rem;
+            opacity: 0.7;
+            display: none;
+        }
+        
+        @media(max-width: 800px){
+            .faq-header h1 {
+                font-size: 3rem;
+            }
+            
+            .faq-question {
+                font-size: 1.1rem;
+                padding: 1.25rem;
+            }
+            
+            .faq-answer {
+                padding: 0 1.25rem;
+            }
+            
+            .faq-answer.open {
+                padding: 0 1.25rem 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <section class="hero">
+            <div class="hero-inner">
+                <div class="hero-img" style="transform: scale(1);">
+                    <video src="hero-img.mp4" autoplay loop muted></video>
+                </div>
+                <div class="hero-content" style="overflow-y: auto; padding: 0;">
+                    <section class="faq-section">
+                        <div class="faq-header">
+                            <h1>FloatChat FAQs</h1>
+                            <p>Answers to common questions about our ARGO float data query system</p>
+                        </div>
+                        
+                        <div class="search-container">
+                            <input type="text" class="search-input" placeholder="Search ocean data questions...">
+                        </div>
+                        
+                        <div class="faq-categories">
+                            <button class="category-btn active" data-category="all">All Questions</button>
+                            <button class="category-btn" data-category="argo">ARGO Floats</button>
+                            <button class="category-btn" data-category="data">Data Access</button>
+                            <button class="category-btn" data-category="technical">Technical</button>
+                            <button class="category-btn" data-category="visualization">Visualization</button>
+                        </div>
+                        
+                        <div class="faq-container">
+                            <div class="faq-item" data-categories="argo data">
+                                <div class="faq-question">What is ARGO float data?</div>
+                                <div class="faq-answer">
+                                    <p>ARGO is an international program that uses autonomous floats to collect temperature, salinity, and other oceanographic measurements from the upper 2000m of the ocean. These floats drift with ocean currents and surface periodically to transmit data to satellites.</p>
+                                    <p>Our system processes this data from NetCDF format into structured databases, making it easily queryable through natural language interfaces.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="faq-item" data-categories="data technical">
+                                <div class="faq-question">How can I access ARGO data through your system?</div>
+                                <div class="faq-answer">
+                                    <p>You can access ARGO data through our conversational interface. Simply type your query in natural language, such as:</p>
+                                    <ul>
+                                        <li>"Show me temperature profiles from the Indian Ocean in 2023"</li>
+                                        <li>"Compare salinity levels between the Arabian Sea and Bay of Bengal"</li>
+                                        <li"Visualize ARGO float trajectories near the Maldives"</li>
+                                    </ul>
+                                    <p>The system uses AI to interpret your query and retrieve the relevant data.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="faq-item" data-categories="technical">
+                                <div class="faq-question">What technology stack powers this system?</div>
+                                <div class="faq-answer">
+                                    <p>Our system uses a sophisticated technology stack:</p>
+                                    <ul>
+                                        <li><strong>Backend:</strong> Python with frameworks for data processing</li>
+                                        <li><strong>Databases:</strong> PostgreSQL for structured data, FAISS/Chroma for vector embeddings</li>
+                                        <li><strong>AI:</strong> Multimodal LLMs (GPT, LLaMA, or Mistral) with RAG pipelines</li>
+                                        <li><strong>Frontend:</strong> Streamlit or Dash for interactive visualizations</li>
+                                        <li><strong>Data Processing:</strong> NetCDF data conversion to SQL/Parquet formats</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="faq-item" data-categories="visualization">
+                                <div class="faq-question">What types of visualizations can I create?</div>
+                                <div class="faq-answer">
+                                    <p>Our system supports multiple visualization types:</p>
+                                    <ul>
+                                        <li>Geospatial maps showing float trajectories</li>
+                                        <li>Depth-time plots of temperature and salinity</li>
+                                        <li>Profile comparisons across different regions or time periods</li>
+                                        <li>Time series analyses of ocean parameters</li>
+                                        <li>BGC parameter visualizations (for biogeochemical floats)</li>
+                                    </ul>
+                                    <p>Visualizations are interactive and can be customized based on your query.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="faq-item" data-categories="data">
+                                <div class="faq-question">What time range of data is available?</div>
+                                <div class="faq-answer">
+                                    <p>Our current implementation focuses on Indian Ocean ARGO data, with plans to expand to global datasets. The time range available depends on the specific region and float deployment schedules, but typically includes data from the early 2000s to present.</p>
+                                    <p>The system is designed to handle real-time data ingestion as new measurements become available from the ARGO program.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="faq-item" data-categories="technical">
+                                <div class="faq-question">How does the natural language query work?</div>
+                                <div class="faq-answer">
+                                    <p>Our system uses Retrieval-Augmented Generation (RAG) with large language models:</p>
+                                    <ol>
+                                        <li>Your natural language query is processed by an LLM</li>
+                                        <li>The system searches vector databases for relevant metadata and data summaries</li>
+                                        <li>A structured database query (SQL) is generated based on your intent</li>
+                                        <li>Results are retrieved and formatted into a natural language response</li>
+                                        <li>Visualizations are automatically generated when appropriate</li>
+                                    </ol>
+                                </div>
+                            </div>
+                            
+                            <div class="faq-item" data-categories="argo">
+                                <div class="faq-question">What parameters can I query from ARGO floats?</div>
+                                <div class="faq-answer">
+                                    <p>Core ARGO float data includes:</p>
+                                    <ul>
+                                        <li>Temperature profiles at various depths</li>
+                                        <li>Salinity measurements</li>
+                                        <li>Pressure readings</li>
+                                        <li>Float trajectory and position data</li>
+                                    </ul>
+                                    <p>For Bio-Geo-Chemical (BGC) ARGO floats, additional parameters include:</p>
+                                    <ul>
+                                        <li>Oxygen concentration</li>
+                                        <li>Nitrate levels</li>
+                                        <li>Chlorophyll fluorescence</li>
+                                        <li>pH measurements</li>
+                                        <li>Particulate matter</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="faq-item" data-categories="data technical">
+                                <div class="faq-question">Can I export the data for my own analysis?</div>
+                                <div class="faq-answer">
+                                    <p>Yes, our system supports multiple export formats:</p>
+                                    <ul>
+                                        <li>CSV for tabular data analysis</li>
+                                        <li>NetCDF for compatibility with scientific tools</li>
+                                        <li>JSON for application integration</li>
+                                        <li>Image formats (PNG, SVG) for visualizations</li>
+                                    </ul>
+                                    <p>Exports maintain the original data quality and metadata from the ARGO program.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="no-results">
+                            <p>No results found. Try different keywords or browse by category.</p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- Menu Drawer -->
+            <div class="menu-container" style="top: 2rem; left: 2rem; transform: none; display: flex; align-items: center; height: 3rem;">
+                <div class="menu-btn">
+                    <div class="btn">
+                        <div class="btn-label">
+                            <a style="
+                                color: var(--base-100);
+                                text-decoration: none;
+                                font-size: 1rem;
+                                font-weight: 450;
+                                transition: opacity 0.3s ease;
+                            " href="index.html">Main</a>
+                        </div>
+                        <div class="btn-icon">
+                            <ion-icon name="menu-sharp"></ion-icon>
+                        </div>
+                    </div>
+                </div>
+                <div class="drawer-menu">
+                    <ul class="drawer-nav">
+                        <li><a href="about.html">About</a></li>
+                        <li><a href="features.html">Features</a></li>
+                        <li><a href="faqs.html">FAQs</a></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle FAQ items
+            const faqQuestions = document.querySelectorAll('.faq-question');
+            
+            faqQuestions.forEach(question => {
+                question.addEventListener('click', () => {
+                    const faqItem = question.parentElement;
+                    const answer = question.nextElementSibling;
+                    
+                    // Close other open FAQs
+                    document.querySelectorAll('.faq-answer.open').forEach(openAnswer => {
+                        if (openAnswer !== answer) {
+                            openAnswer.classList.remove('open');
+                            openAnswer.previousElementSibling.classList.remove('active');
+                        }
+                    });
+                    
+                    // Toggle current FAQ
+                    question.classList.toggle('active');
+                    answer.classList.toggle('open');
+                });
+            });
+            
+            // Search functionality
+            const searchInput = document.querySelector('.search-input');
+            const faqItems = document.querySelectorAll('.faq-item');
+            const noResults = document.querySelector('.no-results');
+            
+            searchInput.addEventListener('input', () => {
+                const searchTerm = searchInput.value.toLowerCase();
+                let visibleItems = 0;
+                
+                faqItems.forEach(item => {
+                    const question = item.querySelector('.faq-question').textContent.toLowerCase();
+                    const answer = item.querySelector('.faq-answer').textContent.toLowerCase();
+                    
+                    if (question.includes(searchTerm) || answer.includes(searchTerm)) {
+                        item.style.display = 'block';
+                        visibleItems++;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+                
+                // Show no results message if no items match
+                noResults.style.display = visibleItems === 0 ? 'block' : 'none';
+            });
+            
+            // Category filtering
+            const categoryButtons = document.querySelectorAll('.category-btn');
+            
+            categoryButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Update active button
+                    categoryButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    
+                    const category = button.getAttribute('data-category');
+                    
+                    // Show/hide items based on category
+                    faqItems.forEach(item => {
+                        const itemCategories = item.getAttribute('data-categories').split(' ');
+                        
+                        if (category === 'all' || itemCategories.includes(category)) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+
+    <!-- Icons and animation script for the menu -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script type="module" src="script.js"></script>
+</body>
+</html>

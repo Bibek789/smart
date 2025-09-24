@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FloatChat - AI Chat</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Chat-specific styles */
+        body {
+            overflow: hidden;
+            display: flex;
+            flex-direction: column; /* Changed for better centering */
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #e0e0e0;
+            background-color: var(--base-100);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Ensure the background video covers the entire page and stays behind content */
+        .chat-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .chat-background video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Sidebar for chat history */
+        .sidebar {
+            width: 260px;
+            background: rgba(10, 10, 20, 0.8);
+            backdrop-filter: blur(15px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            flex-shrink: 0;
+            height: 100%;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 5px;
+            margin-bottom: 15px;
+        }
+
+        .home-link {
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .home-link ion-icon {
+            font-size: 1.6rem;
+        }
+
+        .new-chat-btn {
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .new-chat-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-history {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .history-title {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            padding: 0 10px 10px;
+        }
+
+        .chat-history ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            transition: background-color 0.2s;
+            padding: 5px;
+        }
+
+        .history-item:hover, .history-item.active {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .history-item a {
+            color: #e0e0e0;
+            text-decoration: none;
+            padding: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-grow: 1;
+        }
+
+        .delete-chat-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 10px;
+            opacity: 0;
+            transition: opacity 0.2s, color 0.2s;
+        }
+
+        .history-item:hover .delete-chat-btn {
+            opacity: 1;
+        }
+
+        .delete-chat-btn:hover {
+            color: #ff5c5c;
+        }
+
+        /* Sidebar footer for user profile and settings */
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            padding: 10px 5px;
+            gap: 12px;
+            border-radius: 8px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #4a69bd;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .user-name {
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            color: #e0e0e0;
+            padding: 12px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Main chat interface container */
+        .chat-container {
+            flex-grow: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* New container to hold both chat and dashboard */
+        .chat-and-dashboard {
+            display: flex;
+            flex-grow: 1;
+            height: 100%;
+            overflow: hidden; /* Important for child scrolling */
+        }
+
+        /* Area for the chat messages and input */
+        .chat-area {
+            flex: 1; /* Takes up 50% of the space */
+            display: flex;
+            flex-direction: column;
+            min-width: 400px; /* Ensure chat is not too squished */
+        }
+
+        /* Area for the embedded dashboard */
+        .dashboard-area {
+            flex: 1; /* Takes up 50% of the space */
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Make sure the iframe fills the container */
+        .dashboard-area iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block; /* Removes any default spacing */
+        }
+
+        /* Generic icon button style for the toggle button */
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        /* Area where messages will appear */
+        .chat-messages {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Styling for individual messages */
+        .message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            line-height: 1.5;
+        }
+
+        .message p {
+            margin: 0;
+        }
+
+        .bot-message {
+            background-color: rgba(50, 50, 70, 0.7);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .user-message {
+            background-color: rgba(60, 80, 110, 0.8);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        /* Input area at the bottom */
+        .chat-input-area {
+            padding: 20px 30px;
+            flex-shrink: 0; /* Prevents the input area from shrinking */
+        }
+
+        .chat-form {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(20, 20, 30, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 8px;
+        }
+
+        textarea {
+            flex-grow: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 14px;
+            color: #fff;
+            font-size: 1rem;
+            resize: none;
+            height: 48px;
+            font-family: inherit;
+            /* Make scrollbar invisible but still functional */
+            scrollbar-width: none; /* For Firefox */
+            -ms-overflow-style: none;  /* For Internet Explorer and Edge */
+        }
+
+        /* For Chrome, Safari, and Opera */
+        textarea::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            background: transparent;
+        }
+
+        .send-btn {
+            background: #4a69bd;
+            border: none;
+            border-radius: 50%;
+            width: 52px;
+            height: 52px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            color: #fff;
+            font-size: 1.5rem;
+            transition: background-color 0.2s;
+        }
+
+        .send-btn:hover {
+            background: #5d82d1;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .main-layout {
+            display: flex;
+            width: 95%;
+            max-width: 1600px; /* Increased max-width for the new layout */
+            height: 90vh;
+            background: rgba(20, 20, 30, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            overflow: hidden;
+        }
+
+        /* Styles for when the dashboard is hidden */
+        .main-layout.dashboard-hidden .dashboard-area {
+            display: none; /* Completely hide the dashboard */
+        }
+
+        .main-layout.dashboard-hidden .chat-area {
+            flex: 1 1 100%; /* Allow chat area to take full width */
+            min-width: 100%;
+        }
+
+        /* Change icon when dashboard is hidden */
+        .main-layout.dashboard-hidden #toggle-dashboard-btn ion-icon {
+            --ionicon-stroke-width: 48px; /* Make icon bolder */
+        }
+
+        @media (max-width: 768px) {
+            .main-layout {
+                flex-direction: column;
+                height: 95vh;
+                width: 98%;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 40%;
+            }
+            
+            .chat-container {
+                height: 100%; /* Take full height in column layout */
+            }
+
+            .dashboard-area {
+                display: none; /* Hide dashboard on mobile by default */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Authentication check -->
+    <script>
+        if (!localStorage.getItem('fc_currentUser')) {
+            window.location.href = "auth.html";
+        }
+        
+        // Get current user data
+        const currentUsername = localStorage.getItem('fc_currentUser');
+        const users = JSON.parse(localStorage.getItem('fc_users') || '{}');
+        const userData = users[currentUsername] || {};
+    </script>
+
+    <!-- Container for the background video -->
+    <div class="chat-background">
+        <video autoplay loop muted playsinline onerror="this.style.display='none'">
+            <source src="hero-img.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <div class="main-layout">
+        <!-- Sidebar for chat history -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <a href="index.html" class="home-link">
+                    <ion-icon name="planet-outline"></ion-icon>
+                    <span>FloatChat</span>
+                </a>
+                <button class="new-chat-btn">
+                    <ion-icon name="add-outline"></ion-icon>
+                </button>
+            </div>
+            <div class="chat-history">
+                <p class="history-title">Recent</p>
+                <ul>
+                    <!-- Example chat history item -->
+                    <li class="history-item active">
+                        <a href="#">ARGO float data in the Indian Ocean</a>
+                        <button class="delete-chat-btn"><ion-icon name="trash-outline"></ion-icon></button>
+                    </li>
+                    <li class="history-item">
+                        <a href="#">Temperature vs. Salinity</a>
+                        <button class="delete-chat-btn"><ion-icon name="trash-outline"></ion-icon></button>
+                    </li>
+                </ul>
+            </div>
+            <!-- User profile and settings footer -->
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar" id="userAvatar">
+                        <script>
+                            // Set avatar initial from username
+                            document.getElementById('userAvatar').textContent = 
+                                userData.fullName ? userData.fullName.charAt(0).toUpperCase() : 
+                                currentUsername ? currentUsername.charAt(0).toUpperCase() : 'U';
+                        </script>
+                    </div>
+                    <span class="user-name" id="userName">
+                        <script>
+                            // Display the actual username or full name
+                            document.getElementById('userName').textContent = 
+                                userData.fullName || currentUsername || 'User';
+                        </script>
+                    </span>
+                </div>
+                <button class="logout-btn" id="logoutBtn">
+                    <ion-icon name="log-out-outline"></ion-icon>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main chat container -->
+        <div class="chat-container">
+            <div class="chat-and-dashboard">
+                <div class="chat-area">
+                    <div class="chat-messages" id="chat-messages">
+                        <!-- Welcome message with username -->
+                        <div class="message bot-message">
+                            <p>Hello <span id="welcomeUserName">
+                                <script>
+                                    // Display username in welcome message
+                                    document.getElementById('welcomeUserName').textContent = 
+                                        userData.fullName || currentUsername || 'there';
+                                </script>
+                            </span>! I am FloatChat. How can I help you explore ARGO oceanographic data today?</p>
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <form id="chat-form" class="chat-form">
+                            <button type="button" id="toggle-dashboard-btn" class="icon-btn" title="Toggle Dashboard">
+                                <ion-icon name="analytics-outline"></ion-icon>
+                            </button>
+                            <textarea id="message-input" placeholder="Ask me about ARGO data..." required></textarea>
+                            <button type="submit" class="send-btn">
+                                <ion-icon name="arrow-up-outline"></ion-icon>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <!-- Dashboard Area -->
+                <div class="dashboard-area">
+                    <iframe src="http://localhost:8501" title="ARGO Data Dashboard"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    
+    <script>
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            localStorage.removeItem('fc_currentUser');
+            window.location.href = 'auth.html';
+        });
+        
+        // Chat form submission
+        document.getElementById('chat-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const messageInput = document.getElementById('message-input');
+            const message = messageInput.value.trim();
+            
+            if (message) {
+                // Add user message to chat
+                addMessage(message, 'user');
+                
+                // Clear input
+                messageInput.value = '';
+                
+                // Simulate bot response
+                setTimeout(() => {
+                    addMessage("I'm processing your request about: " + message, 'bot');
+                }, 1000);
+            }
+        });
+        
+        function addMessage(text, sender) {
+            const messagesContainer = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            const messageP = document.createElement('p');
+            messageP.textContent = text;
+            
+            messageDiv.appendChild(messageP);
+            messagesContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Dashboard toggle functionality
+        const toggleBtn = document.getElementById('toggle-dashboard-btn');
+        const mainLayout = document.querySelector('.main-layout');
+        const toggleIcon = toggleBtn.querySelector('ion-icon');
+
+        toggleBtn.addEventListener('click', () => {
+            mainLayout.classList.toggle('dashboard-hidden');
+            const isHidden = mainLayout.classList.contains('dashboard-hidden');
+            toggleIcon.setAttribute('name', isHidden ? 'analytics-outline' : 'close-outline');
+            toggleBtn.setAttribute('title', isHidden ? 'Show Dashboard' : 'Hide Dashboard');
+        });
+
+    </script>
+</body>
+</html>
